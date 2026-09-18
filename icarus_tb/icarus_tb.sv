@@ -71,7 +71,7 @@ always@(posedge o_data_wr_en) begin
    $display("Recieved write instruction. Address: %b, Data: %b", o_data_addr, o_data_wr_data);
 end
 
-
+//handle memory read
 always@(posedge o_data_rd_en) begin
    i_data_rd_data <= data_memory[o_data_addr];
    $display("Recieved read instruciton. Address: %b", o_data_addr);
