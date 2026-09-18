@@ -1,0 +1,4 @@
+----------Task 1 Cover properties----------
+Add extra cover properties to explore the design.
+----------Task 2 Formal Verification----------
+Formally verify the FIFO.
