@@ -42,6 +42,8 @@ always #1 i_clk =~ i_clk;
 // simulated memory 
 logic [7:0] data_memory [0:255]; //256 locations of 8 bit data
 logic [7:0] instruction_memory [0:255]; //256 locations of 8 bit instructions
+logic [7:0] final_instruction_address;
+logic stop;
 
 typedef enum logic [3:0] { LDAM=0, LDBM, STAM, LDAC, LDBC, LDAP, LDAI, LDBI, STAI, BR, BRZ, BRN, BRB, ADD, SUB, PFIX } instr_t;
 
@@ -69,39 +71,45 @@ always@(posedge o_data_wr_en) begin
    $display("Recieved write instruction. Address: %b, Data: %b", o_data_addr, o_data_wr_data);
 end
 
+
 always@(posedge o_data_rd_en) begin
    i_data_rd_data <= data_memory[o_data_addr];
    $display("Recieved read instruciton. Address: %b", o_data_addr);
 end
 
 // handle instruction memory serve, effectively happens at the start of the clock cycle.
-always(o_instr_addr) begin
+always@(o_instr_addr) begin
+   if (stop) begin
+      $dumpfile("dump.vcd");
+      $dumpvars(0,icarus_testbench);
+      $finish;
+   end
+   i_instr_rd_data = instruction_memory[o_instr_addr];
 
+   if (o_instr_addr >= final_instruction_address) begin
+      stop = 1;
+   end   
 end
 
-// instruction fill
-
-
-
-
 initial begin
-   //Fill instruction memory
+   //Fill instruction memory 
    
+   instruction_memory[0] = FORM_OPCODE_OPERAND(LDAC, 15);
+   instruction_memory[1] = FORM_OPCODE_OPERAND(STAM, 1);
+   final_instruction_address = 1;
 
-   // send signal and wait
+
+   // Start the clock
    i_clk = 1;
    repeat (1) @(posedge i_clk);
-
+   /*
    `EXECUTE_INSTR(LDAC, 15);
    `EXECUTE_INSTR(STAM, 1);
    `EXECUTE_INSTR(LDAC, 0);
    `EXECUTE_INSTR(LDAM, 1);
    `EXECUTE_INSTR(LDBC, 0);
-
-   // test branching
-   `EXECUTE_INSTR()
+   */
    
-   // test writing to memory
 
    $dumpfile("dump.vcd");
    $dumpvars(0,icarus_testbench);
