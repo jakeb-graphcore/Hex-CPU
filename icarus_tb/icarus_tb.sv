@@ -1,4 +1,4 @@
-module icarus_testbench;
+module testbench;
    parameter p_address_width = 8;
    parameter p_data_width    = 32;
 
@@ -38,6 +38,8 @@ cpu dut (
 );
 logic rst;
 always #1 i_clk =~ i_clk;
+
+
 
 // simulated memory 
 logic [7:0] data_memory [0:255]; //256 locations of 8 bit data
@@ -80,8 +82,6 @@ end
 // handle instruction memory serve, effectively happens at the start of the clock cycle.
 always@(o_instr_addr) begin
    if (stop) begin
-      $dumpfile("dump.vcd");
-      $dumpvars(0,icarus_testbench);
       $finish;
    end
    i_instr_rd_data = instruction_memory[o_instr_addr];
@@ -102,18 +102,19 @@ initial begin
    // Start the clock
    i_clk = 1;
    repeat (1) @(posedge i_clk);
-   /*
+
+   
    `EXECUTE_INSTR(LDAC, 15);
    `EXECUTE_INSTR(STAM, 1);
    `EXECUTE_INSTR(LDAC, 0);
    `EXECUTE_INSTR(LDAM, 1);
    `EXECUTE_INSTR(LDBC, 0);
-   */
-   
-
-   $dumpfile("dump.vcd");
-   $dumpvars(0,icarus_testbench);
    $finish;
 end
 
-endmodule
+final begin
+   $dumpfile("dump.vcd");
+   $dumpvars(0,testbench);
+end
+
+endmodule : testbench

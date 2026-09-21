@@ -5,7 +5,7 @@ data_read_scoreboard_enabled = True # Set to False to disable the read request t
 instruction_end_of_test_scoreboard_check = False
 data_end_of_test_scoreboard_check = True # Set to False to disable the end of test check that ensures the queue for the scoreboard of the data memory transactor is empty.
 use_dynamic_instruction_transactor = False # Replaces regular memory based instruction transactor with dynamic instruction transactor. Set to True before beginning TASK 5.
-use_arch_state_monitor = False # Monitors and checks the architectural state of the design. Set to True before beginning TASK 2.
+use_arch_state_monitor = True # Monitors and checks the architectural state of the design. Set to True before beginning TASK 2.
 # Test setup
 ROOT_SEED = 0
 NUM_TESTS = 1

@@ -20,7 +20,7 @@ cpu #(
       .p_address_width ( p_address_width )
     , .p_data_width    ( p_data_width    )
 ) u_dut (
-      .i_clk           ( i_clk             )
+      .i_clk           ( i_clk           )
     , .i_rst           ( i_rst           )
     // Program fetch
     , .o_instr_addr    ( o_instr_addr    )
@@ -35,6 +35,9 @@ cpu #(
 );
 
 arch_monitor u_arch_monitor();
+
+
+
 
 initial begin
    $dumpfile("dump.vcd");
