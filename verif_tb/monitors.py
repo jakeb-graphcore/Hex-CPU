@@ -119,19 +119,62 @@ class ArchStateMonitor(BusMonitor):
     def load_instructions(self, code):
         self.model.load_instructions(code)
 
+    # TODO: (TASK 3) Define your coverage here.
     def define_coverage(self):
         self.covergroup.add_coverpoint("all_instructions")
         self.covergroup["all_instructions"].add_axis("instr", [i.name for i in InstrEncoding])
-        # TODO: (TASK 3) Define your coverage here.
+
+        # Count the amount of instructions executed
+        self.covergroup.add_coverpoint("num_instr_executed")
+        self.covergroup["num_instr_executed"].add_axis("num_instr", ["num_instr"])
+
+        # count how many times each memory address has been hit 
+        self.covergroup.add_coverpoint("memory_addresses_exposed")
+        self.covergroup["memory_addresses_exposed"].add_axis("mem_address", [i for i in range(0, 256)])
+
+        # Test each opcode and operand
+        self.covergroup.add_coverpoint("all_instructions_and_opcodes")
+        self.covergroup["all_instructions_and_opcodes"].add_axis("instr_opcode", [instr.name for instr in InstrEncoding])
+        self.covergroup["all_instructions_and_opcodes"].add_axis("operand", range(16))
 
     def collect_coverage(self):
         # TODO: (TASK 3) Collect your coverage here.
         instr_executed = self.model.prev_instr
         instr_name = InstrEncoding((instr_executed >> 4) & 0xf).name
+        operand = instr_executed & 0xf
+        oreg = self.model.oreg
+        areg = self.model.areg
+        breg = self.model.breg
+
         self.covergroup["all_instructions"].incr((instr_name,))
+
+
+        # count how many instructions have been executed
+        print(self.covergroup["num_instr_executed"].buckets)
+        self.covergroup["num_instr_executed"].incr(("num_instr",))
+
+
+        # Count how many times each memory address has been hit TODO: need to check it works
+        if instr_name == "LDAM" or instr_name == "LDBM" or instr_name == "STAM":
+            self.covergroup["memory_addresses_exposed"].incr((oreg,))
+
+        if instr_name == "STAI" or instr_name == "LDBI":
+            self.covergroup["memory_addresses_exposed"].incr((breg + oreg,))
+
+        if instr_name == "LDAI":
+            self.covergroup["memory_addresses_exposed"].incr((areg + oreg,))
+
+
+        # Report each instruction and its opcode
+        self.covergroup["all_instructions_and_opcodes"].incr((instr_name, operand))
+
+        # report all coverage
         if self.model_finished:
             self.covergroup.sub_report(self.seed)
             self.covergroup.report()
+
+
+        
 
     @cocotb.coroutine
     async def _monitor_recv(self):
