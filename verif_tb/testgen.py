@@ -12,6 +12,16 @@ def directed_2(rand : Random):
 def directed_3(rand : Random):
     return ["32", "ff", "9e"]
 
+# TODO: How to make it so both these tests are run
+
+# Test every possible instruction in order
+def test_everything():
+    return [str(i) for i in range(0, 256)]
+
+# Test randomly n times
+def test_randomly(rand: Random, n: int):
+    return [rand(0, 255) for i in range(0, n)]
+
 # TODO: (TASK 4) Add your testgen tests here.
 
 # Tests are randomly chosen. Use this to change the weighting of your tests.
