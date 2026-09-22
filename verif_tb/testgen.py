@@ -19,10 +19,7 @@ def test_everything():
     # For now, remove branch operations and test them seperatly (as the instructions are layed out such taht they loop the model).
     all_instructions = [str(hex(i)) for i in range(0, 256) if not (144 <= i <= 207 )]
     all_instructions.append("0x9e") # Wanted end string
-
     return all_instructions
-
-
 
 
 
@@ -43,4 +40,4 @@ def main_testgen_control(rand : Random):
 #            picked_test = test
 #            break
 #    return picked_test(rand)
-    return directed_1(rand)
+    return test_everything();

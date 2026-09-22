@@ -54,7 +54,7 @@ logic [p_address_width-1:0]    areg        = '0; // left side operand
 logic [p_address_width-1:0]    breg        = '0; // right side operand
 logic retire = '0; // retire signal needed in spec apparently
 
-typedef enum logic[3:0] {SEND_INSTRUCTION=0, WAIT_FOR_INSTRUCTION, EXECUTE, WAIT_FOR_MEMORY, CAPTURE_MEMORY,  RETIRE, KILL} exec_state;
+typedef enum logic[3:0] {SEND_INSTRUCTION=0, WAIT_FOR_INSTRUCTION, DECODE, EXECUTE, WAIT_FOR_MEMORY, CAPTURE_MEMORY, RETIRE, KILL} exec_state;
 exec_state state;
 
 initial begin
@@ -103,12 +103,17 @@ always_ff @(posedge i_clk) begin
 
     // causes an implicit wait.
     WAIT_FOR_INSTRUCTION: begin 
-        state <= EXECUTE;      
+        state <= DECODE;      
+    end
+
+    // need a seperate decode step to ensure test suite can read oreg's value
+    DECODE: begin
+        instruction = ((i_instr_rd_data >> op_width) & 15);
+        oreg[3:0] <= i_instr_rd_data[3:0];
+        state <= EXECUTE;
     end
     
     EXECUTE: begin
-        instruction = ((i_instr_rd_data >> op_width) & 15);
-        oreg[3:0] = i_instr_rd_data[3:0];
         case (instruction)
 
             LDAM: begin
@@ -129,12 +134,13 @@ always_ff @(posedge i_clk) begin
 
             LDBC: begin
                 breg <= oreg;
-                state <= RETIRE;
                 pc <= pc + 1;
+                state <= RETIRE;
             end
 
             LDAP: begin
                 areg <= pc + oreg + 1;
+                pc <= pc + 1;
                 state <= RETIRE; 
             end
 
@@ -164,6 +170,7 @@ always_ff @(posedge i_clk) begin
 
             BR: begin
                 if (oreg == 254) begin
+                    pc <= pc - 1;// so it plays well with cotocb testing
                     state <= KILL;
                 end else begin
                     pc <= pc + oreg + 1;
@@ -214,9 +221,7 @@ always_ff @(posedge i_clk) begin
             end
         endcase
 
-        if (instruction != PFIX) begin
-            oreg <= 0;
-        end
+    
     end
 
     // implicit wait for memory
@@ -245,13 +250,18 @@ always_ff @(posedge i_clk) begin
 
     // resest flags
     RETIRE: begin
+        if (instruction != PFIX) begin
+            oreg <= 0;
+        end
         retire <= 1;
         state <= SEND_INSTRUCTION;
     end
 
     // kill the cpu (shutdown cpu without calling finish)
     KILL: begin
+        oreg <= 0;
         state <= KILL;
+        retire <= 1;
     end
   endcase
 

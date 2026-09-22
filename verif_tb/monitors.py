@@ -142,7 +142,8 @@ class ArchStateMonitor(BusMonitor):
         instr_executed = self.model.prev_instr
         instr_name = InstrEncoding((instr_executed >> 4) & 0xf).name
         operand = instr_executed & 0xf
-        oreg = self.model.oreg
+
+        oreg = self.model.oreg # I believe this may be set to 0 before we collect coverage. 
         areg = self.model.areg
         breg = self.model.breg
 
@@ -156,13 +157,15 @@ class ArchStateMonitor(BusMonitor):
 
         # Count how many times each memory address has been hit TODO: need to check it works
         if instr_name == "LDAM" or instr_name == "LDBM" or instr_name == "STAM":
-            self.covergroup["memory_addresses_exposed"].incr((oreg,))
+            self.covergroup["memory_addresses_exposed"].incr((operand,))
+            if oreg != 0:
+                print("Oreg is not 0!")
 
         if instr_name == "STAI" or instr_name == "LDBI":
-            self.covergroup["memory_addresses_exposed"].incr((breg + oreg,))
+            self.covergroup["memory_addresses_exposed"].incr((breg + operand,))
 
         if instr_name == "LDAI":
-            self.covergroup["memory_addresses_exposed"].incr((areg + oreg,))
+            self.covergroup["memory_addresses_exposed"].incr((areg + operand,))
 
 
         # Report each instruction and its opcode
@@ -170,8 +173,14 @@ class ArchStateMonitor(BusMonitor):
 
         # report all coverage
         if self.model_finished:
+            print("Writing Coverage Reports")
             self.covergroup.sub_report(self.seed)
             self.covergroup.report()
+
+        # return the last n instructions
+        def get_last_n_instructions(n: int):
+            return self.model.all_instructions[len(self.model.all_instructions) - n - 1 :len(self.model.all_instructions)]
+        
 
 
         

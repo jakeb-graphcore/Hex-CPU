@@ -37,6 +37,7 @@ class CPUModel:
         self.oreg = Reg(0)
         self.pc = Reg(0)
         self.prev_instr = None
+        self.all_instructions = []
 
     def load_instructions(self, code):
         if isinstance(code, str):
@@ -106,6 +107,7 @@ class CPUModel:
         self.prev_instr = fetched_instruction
         self.pc += 1
         self.oreg |= (fetched_instruction & 0xf)
+        self.all_instructions.append(fetched_instruction)
         instr = (fetched_instruction >> 4) & 0xf
         if (instr == InstrEncoding.LDAM):
             self.areg = self.data_read(self.oreg)

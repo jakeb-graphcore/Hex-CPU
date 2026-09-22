@@ -3,7 +3,7 @@ import tb_config
 import os
 
 class Coverpoint:
-    def __init__(self, name, bucket_size=10):
+    def __init__(self, name, bucket_size=1):
         self.name = name
         self.axis_map = {}
         self.buckets = {}
