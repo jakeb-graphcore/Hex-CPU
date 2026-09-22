@@ -5,6 +5,7 @@ import models
 
 from transactions import MemTransaction
 from cocotb_bus.scoreboard import Scoreboard
+from random import Random
 
 class MemoryTransactor:
     def __init__(self, entity, clock, testbench_callback, driver, monitor, enable_scoreboard=True, end_of_test_scoreboard_check=True):
@@ -74,12 +75,32 @@ class DataMemoryTransactor(MemoryTransactor):
 class DynamicInstructionMemoryTransactor(InstructionMemoryTransactor):
     def __init__(self, entity, clock, testbench_callback):
         self.cpu_model = models.CPUModel()
+        seed = 1234
+        self.num_of_instructions_to_serve = 10000;
+        self.rand = Random(seed)
+        self.num_of_instructions_served = 0;
+        
+        
         super().__init__(entity, clock, testbench_callback, enable_scoreboard=False, end_of_test_scoreboard_check=False)
 
     def next_instruction(self, transaction: MemTransaction):
         # TODO: (TASK 5) Implement your Dynamic Instruction Transactor here.
-        return 0x00
+        # Start with the simplest way, return a random instruction 
 
+        instruction = self.rand.randint(0, 255);
+        self.num_of_instructions_served += 1;
+
+        # send second end of statement
+        if self.num_of_instructions_served - self.num_of_instructions_to_serve == 0:
+            return 0xff
+
+        # send last end of statement 
+        if self.num_of_instructions_served - self.num_of_instructions_to_serve == -1:
+            return 0x9e
+
+        return instruction
+
+    
     def monitor_callback(self, transaction: MemTransaction):
         self.testbench_callback(transaction)
         mem_val = self.next_instruction(transaction)
