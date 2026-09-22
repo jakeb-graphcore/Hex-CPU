@@ -12,6 +12,9 @@ class MemoryModel:
 
     def block_write(self, start_addr, data_block):
         """Use to initialise memory."""
+        print(len(data_block))
+        print(start_addr)
+        print(self.mem_depth)
         assert len(data_block) - start_addr <= self.mem_depth
         for i, data in enumerate(data_block):
             self.memory[start_addr + i] = data

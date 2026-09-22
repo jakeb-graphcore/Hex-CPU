@@ -16,7 +16,15 @@ def directed_3(rand : Random):
 
 # Test every possible instruction in order
 def test_everything():
-    return [str(i) for i in range(0, 256)]
+    # For now, remove branch operations and test them seperatly (as the instructions are layed out such taht they loop the model).
+    all_instructions = [str(hex(i)) for i in range(0, 256) if not (144 <= i <= 207 )]
+    all_instructions.append("0x9e") # Wanted end string
+
+    return all_instructions
+
+
+
+
 
 # Test randomly n times
 def test_randomly(rand: Random, n: int):
