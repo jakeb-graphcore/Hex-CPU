@@ -67,7 +67,7 @@ initial begin
     o_data_wr_en <= '0;
     o_data_rd_en <= '0;
     state <= SEND_INSTRUCTION;
-    $monitor("oreg=%d, breg=%d, areg=%d, pc=%d", oreg, breg, areg, pc);
+    // $monitor("oreg=%d, breg=%d, areg=%d, pc=%d", oreg, breg, areg, pc);
 end
 
 
@@ -81,6 +81,10 @@ always_ff @(posedge i_clk) begin
       o_data_wr_data <= '0;
       o_data_wr_en <= '0;
       o_data_rd_en <= '0;
+      oreg <= 0;
+      areg <= 0;
+      breg <= 0;
+
       state <= SEND_INSTRUCTION;
   end else begin
 

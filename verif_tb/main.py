@@ -8,11 +8,12 @@ import tb_config
 
 root_rand = Random()
 root_rand.seed(tb_config.ROOT_SEED)
-async def run_test(dut, seed=0):
-    rand = Random()
-    rand.seed(seed)
+async def run_test(dut, test_generator=None, seed=0):
+    rand = Random(seed)
     tb = TB(dut, seed)
-    await tb.run(testgen.main_testgen_control(rand))
+
+    code = test_generator(rand)
+    await tb.run(code)
 
 def log_seeds(root_seed, test_seeds):
     if not os.path.isdir(tb_config.LOG_ROOT):
@@ -36,6 +37,14 @@ else:
     test_seeds = tb_config.TEST_SEEDS_OVERRIDE
     log_seeds("None (seeds overwrite)", test_seeds)
 clear_coverage()
+
 tf = cocotb.regression.TestFactory(run_test)
-tf.add_option(name="seed", optionlist=test_seeds)
+
+
+tf.add_option(name="test_generator", optionlist=[
+    testgen.directed_1,
+    testgen.directed_2,
+    testgen.directed_3,
+    testgen.test_everything,
+])
 tf.generate_tests()

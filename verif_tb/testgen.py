@@ -7,7 +7,7 @@ def directed_1(rand : Random):
     return ["32","43","D0","20","10","ff","9e"]
 
 def directed_2(rand : Random):
-    return ["91", "00", "00" "ff", "9e"]
+    return ["91", "00", "00", "ff", "9e"]
 
 def directed_3(rand : Random):
     return ["32", "ff", "9e"]
@@ -15,12 +15,16 @@ def directed_3(rand : Random):
 # TODO: How to make it so both these tests are run
 
 # Test every possible instruction in order
-def test_everything():
+def test_everything(rand: Random):
     # For now, remove branch operations and test them seperatly (as the instructions are layed out such taht they loop the model).
     all_instructions = [str(hex(i)) for i in range(0, 256) if not (144 <= i <= 207 )]
     all_instructions.append("0x9e") # Wanted end string
     return all_instructions
 
+
+# Test branching operations
+def test_brainching():
+    pass
 
 
 # Test randomly n times
@@ -32,7 +36,7 @@ def test_randomly(rand: Random, n: int):
 # Tests are randomly chosen. Use this to change the weighting of your tests.
 TEST_WEIGHTS = {directed_1: 1, directed_2: 1}
 
-def main_testgen_control(rand : Random):
+def main_testgen_control():
 #    total_weight = sum(TEST_WEIGHTS.values())
 #    rand_val = rand.randint(1, total_weight)
 #    for test, cumulative_weight in zip(TEST_WEIGHTS, accumulate(TEST_WEIGHTS.values())):
@@ -40,4 +44,6 @@ def main_testgen_control(rand : Random):
 #            picked_test = test
 #            break
 #    return picked_test(rand)
+
+    
     return test_everything();

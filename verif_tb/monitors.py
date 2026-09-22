@@ -151,15 +151,12 @@ class ArchStateMonitor(BusMonitor):
 
 
         # count how many instructions have been executed
-        print(self.covergroup["num_instr_executed"].buckets)
         self.covergroup["num_instr_executed"].incr(("num_instr",))
 
 
         # Count how many times each memory address has been hit TODO: need to check it works
         if instr_name == "LDAM" or instr_name == "LDBM" or instr_name == "STAM":
             self.covergroup["memory_addresses_exposed"].incr((operand,))
-            if oreg != 0:
-                print("Oreg is not 0!")
 
         if instr_name == "STAI" or instr_name == "LDBI":
             self.covergroup["memory_addresses_exposed"].incr((breg + operand,))
