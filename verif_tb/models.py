@@ -165,7 +165,7 @@ class CPUModel:
     def execute_program(self):
         self.reset()
         exit = False
-        MAX_LOOP = 10000
+        MAX_LOOP = 100000
         loop = 0
         while not exit and loop < MAX_LOOP:
             exit = self.execute_instruction()

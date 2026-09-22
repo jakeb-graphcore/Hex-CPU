@@ -128,9 +128,6 @@ class ArchStateMonitor(BusMonitor):
         self.covergroup.add_coverpoint("num_instr_executed")
         self.covergroup["num_instr_executed"].add_axis("num_instr", ["num_instr"])
 
-        # count how many times each memory address has been hit 
-        self.covergroup.add_coverpoint("memory_addresses_exposed")
-        self.covergroup["memory_addresses_exposed"].add_axis("mem_address", [i for i in range(0, 256)])
 
         # Test each opcode and operand
         self.covergroup.add_coverpoint("all_instructions_and_opcodes")
@@ -152,17 +149,6 @@ class ArchStateMonitor(BusMonitor):
 
         # count how many instructions have been executed
         self.covergroup["num_instr_executed"].incr(("num_instr",))
-
-
-        # Count how many times each memory address has been hit TODO: need to check it works
-        if instr_name == "LDAM" or instr_name == "LDBM" or instr_name == "STAM":
-            self.covergroup["memory_addresses_exposed"].incr((operand,))
-
-        if instr_name == "STAI" or instr_name == "LDBI":
-            self.covergroup["memory_addresses_exposed"].incr((breg + operand,))
-
-        if instr_name == "LDAI":
-            self.covergroup["memory_addresses_exposed"].incr((areg + operand,))
 
 
         # Report each instruction and its opcode

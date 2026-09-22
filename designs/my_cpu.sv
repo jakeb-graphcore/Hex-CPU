@@ -81,11 +81,18 @@ always_ff @(posedge i_clk) begin
       o_data_wr_data <= '0;
       o_data_wr_en <= '0;
       o_data_rd_en <= '0;
+
       oreg <= 0;
       areg <= 0;
       breg <= 0;
-
+      instruction <= 0;
+      
       state <= SEND_INSTRUCTION;
+      
+      // the following is probably not needed, but helps making tests reentrant
+      instruction <= LDAM;
+      read_from_data_mem_instruction <= LDAM;
+      
   end else begin
 
     o_instr_rd_en <= 0;
@@ -201,7 +208,7 @@ always_ff @(posedge i_clk) begin
             end
 
             BRB: begin
-                pc <= breg + 1;
+                pc <= breg;
                 state <= RETIRE;
             end
 
