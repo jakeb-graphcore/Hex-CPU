@@ -96,6 +96,10 @@ def test_randomly(n: int):
 
     return instructions
 # Tests are randomly chosen. Use this to change the weighting of your tests.
+
+def test_dynamically(operand: int):
+    return [] # let dynamic transactor return instructions
+
 TEST_WEIGHTS = {directed_1: 1, directed_2: 1}
 
 def main_testgen_control():

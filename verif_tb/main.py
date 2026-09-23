@@ -20,6 +20,13 @@ async def run_test(dut, test_case=None):
     code = test_generator(operand)
     await tb.run(code)
 
+# Run a test using dynamic memory
+async def run_dynamic_test(dut):
+    seed = 10
+    tb = TB(dut, seed)
+    await tb.run_dynamic();
+
+
 def log_seeds(root_seed, test_seeds):
     if not os.path.isdir(tb_config.LOG_ROOT):
         os.mkdir(tb_config.LOG_ROOT)
@@ -44,47 +51,52 @@ else:
 
 clear_coverage()
 
-tf = cocotb.regression.TestFactory(run_test)
 
-# Tests to run
-test_generators = [
-    testgen.directed_1,
-    testgen.directed_2,
-    testgen.directed_3,
-    testgen.test_randomly,
-    testgen.test_randomly,
-    testgen.test_randomly,
-    testgen.test_randomly,
-    testgen.test_everything,
-]
+if tb_config.use_dynamic_instruction_transactor == True:
+    tf = cocotb.regression.TestFactory(run_dynamic_test)
+    tf.generate_tests();
+else:
+    tf = cocotb.regression.TestFactory(run_test)
+    # Tests to run
+    test_generators = [
+        testgen.directed_1,
+        testgen.directed_2,
+        testgen.directed_3,
+        testgen.test_randomly,
+        testgen.test_randomly,
+        testgen.test_randomly,
+        testgen.test_randomly,
+        testgen.test_everything,
+    ]
 
-# Branch test generators
-test_branches = [
-    testgen.br_with_operand,
-    testgen.brb_with_operand,
-    testgen.brz_taken_with_operand,
-    testgen.brn_taken_with_operand,
-]
+    # Branch test generators
+    test_branches = [
+        testgen.br_with_operand,
+        testgen.brb_with_operand,
+        testgen.brz_taken_with_operand,
+        testgen.brn_taken_with_operand,
+    ]
 
-# Give each test a unique(ish) number associated with it
-test_cases = [
-    (
-        generator,
-        root_rand.randint(0, 0xffff_ffff),
-        None
-    )
-    for generator in test_generators
-]
+    # Give each test a unique(ish) number associated with it
+    test_cases = [
+        (
+            generator,
+            root_rand.randint(0, 0xffff_ffff),
+            None
+        )
+        for generator in test_generators
+    ]
 
-# test every branch exhaustively
-test_branches = [
-    (   test_branch, 
-        root_rand.randint(0, 0xffff_ffff), 
-        i
-    ) 
-    for test_branch in test_branches for i in range(0, 16)]
+    # test every branch exhaustively
+    test_branches = [
+        (   test_branch, 
+            root_rand.randint(0, 0xffff_ffff), 
+            i
+        ) 
+        for test_branch in test_branches for i in range(0, 16)]
 
-test_cases.extend(test_branches)
+    test_cases.extend(test_branches)
 
-tf.add_option(name="test_case", optionlist=test_cases)
-tf.generate_tests()
+    tf.add_option(name="test_case", optionlist=test_cases)
+
+    tf.generate_tests()

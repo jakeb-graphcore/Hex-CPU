@@ -41,7 +41,7 @@ class MemoryTransactor:
             self.driver.append(MemTransaction(True, transaction.addr, mem_val))
         else:
             self.mem_model.write(transaction.addr, transaction.data)
-
+            
     def assert_expected_transactions_empty(self):
         assert len(self.expected_transactions) == 0, f"Transactions left in {self!r}. {self.expected_transactions!r}"
 
@@ -85,24 +85,28 @@ class DynamicInstructionMemoryTransactor(InstructionMemoryTransactor):
 
     def next_instruction(self, transaction: MemTransaction):
         # TODO: (TASK 5) Implement your Dynamic Instruction Transactor here.
-        # Start with the simplest way, return a random instruction 
+        # Start with the simplest way, return a random instruction. Could have a dynamic instruction memory for this. 
 
         instruction = self.rand.randint(0, 255);
+        print(f"Insruction: {instruction}")
         self.num_of_instructions_served += 1;
 
         # send second end of statement
-        if self.num_of_instructions_served - self.num_of_instructions_to_serve == 0:
+        if self.num_of_instructions_to_serve - self.num_of_instructions_served == 0:
             return 0xff
 
         # send last end of statement 
-        if self.num_of_instructions_served - self.num_of_instructions_to_serve == -1:
+        if self.num_of_instructions_to_serve - self.num_of_instructions_served == -1:
             return 0x9e
 
         return instruction
 
-    
+    # changes such that we check against the generated instruction, by using fetch override.
     def monitor_callback(self, transaction: MemTransaction):
-        self.testbench_callback(transaction)
         mem_val = self.next_instruction(transaction)
+
+        response = MemTransaction(True, transaction.addr, mem_val)
+        self.testbench_callback(response)
+
         self.cpu_model.execute_instruction(fetch_override=mem_val)
-        self.driver.append(MemTransaction(True, transaction.addr, mem_val))
+        self.driver.append(response)

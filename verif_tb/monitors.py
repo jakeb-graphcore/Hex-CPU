@@ -3,6 +3,8 @@ import cocotb
 from cocotb_bus.monitors import BusMonitor
 from cocotb.triggers import RisingEdge, ReadOnly
 
+from collections import deque
+
 from transactions import MemTransaction
 from models import CPUModel
 from coverage import Covergroup
@@ -105,6 +107,10 @@ class ArchStateMonitor(BusMonitor):
         self.define_coverage()
         self.covergroup.gen_buckets()
         self.model_finished = False
+
+        # Instructinos generated for dynamic instruction memory
+        self.instruction_queue = deque();
+
         super().__init__(entity, None, clock)
 
     def sig_val(self, ident):
@@ -114,7 +120,12 @@ class ArchStateMonitor(BusMonitor):
 
     def step_model(self):
         # May need to edit for TASK 5.
-        self.model_finished = self.model.execute_instruction(fetch_override=None)
+        # Change so that we don't read straight from instruciton memory when dynamically generating (we do this by overriding fetch)
+        instruction = self.instruction_queue.popleft()
+        self.model_finished = self.model.execute_instruction(fetch_override=instruction)
+
+        # self.model_finished = self.model.execute_instruction(fetch_override=None)
+
 
     def load_instructions(self, code):
         self.model.load_instructions(code)
@@ -160,9 +171,12 @@ class ArchStateMonitor(BusMonitor):
             self.covergroup.sub_report(self.seed)
             self.covergroup.report()
 
-        # return the last n instructions
-        def get_last_n_instructions(n: int):
-            return self.model.all_instructions[len(self.model.all_instructions) - n - 1 :len(self.model.all_instructions)]
+    # return the last n instructions
+    def get_last_n_instructions(self, n: int):
+        return self.model.all_instructions[len(self.model.all_instructions) - n - 1 :len(self.model.all_instructions)]
+
+    def push_instruction(self, instruction: int):
+        self.instruction_queue.append(instruction)
         
 
 

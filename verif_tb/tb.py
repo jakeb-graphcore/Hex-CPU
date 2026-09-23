@@ -23,8 +23,10 @@ class TB:
         self.cpu_model.reset()
         await self.reset_driver.reset()
 
+    # Change such that we we use the monitor's instruction queue when dynamically generating tests
     def instruction_mem_callback(self, transaction : MemTransaction):
-        pass
+        #if (tb_config.use_dynamic_instruction_transactor == True and self.arch_state_monitor is not None):
+        self.arch_state_monitor.push_instruction(transaction.data)
 
     def data_mem_callback(self, transaction : MemTransaction):
         pass
@@ -35,14 +37,24 @@ class TB:
 
     async def run(self, code=("32","43","D0","20","10","ff","9e"), data_memory=tuple()):
         self.cpu_model.load_instructions(code)
-        if self.arch_state_monitor is not None:
+        if self.arch_state_monitor is not None and tb_config.use_dynamic_instruction_transactor is False:
             self.arch_state_monitor.load_instructions(code)
         self.cpu_model.execute_program()
         data_mem_queue = self.cpu_model.data_queue if self.data_read_scoreboard_enabled else self.cpu_model.data_write_queue
         self.data_mem_transactor.expected(data_mem_queue)
-        self.instruction_mem_transactor.load_memory(code)
+        if tb_config.use_dynamic_instruction_transactor is False:
+            self.instruction_mem_transactor.load_memory(code)
         self.data_mem_transactor.load_memory(data_memory)
         cocotb.start_soon(self.clock.start())
         await self.reset()
         await cocotb.triggers.First(ClockCycles(self.entity.i_clk, 10000), cocotb.triggers.Combine(self.instruction_mem_transactor.transactor_finished.wait(), self.data_mem_transactor.transactor_finished.wait()))
         self.end_of_test()
+
+
+    async def run_dynamic(self, _code=(), data_memory=tuple()):
+        self.data_mem_transactor.load_memory(data_memory)
+        cocotb.start_soon(self.clock.start())
+        await self.reset()
+        await cocotb.triggers.First(ClockCycles(self.entity.i_clk, 10000), cocotb.triggers.Combine(self.instruction_mem_transactor.transactor_finished.wait(), self.data_mem_transactor.transactor_finished.wait()))
+        self.end_of_test()
+
