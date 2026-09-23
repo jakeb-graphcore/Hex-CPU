@@ -75,8 +75,8 @@ class DataMemoryTransactor(MemoryTransactor):
 class DynamicInstructionMemoryTransactor(InstructionMemoryTransactor):
     def __init__(self, entity, clock, testbench_callback):
         self.cpu_model = models.CPUModel()
-        seed = 1234
-        self.num_of_instructions_to_serve = 10000;
+        seed = 12
+        self.num_of_instructions_to_serve = 10000000;
         self.rand = Random(seed)
         self.num_of_instructions_served = 0;
         
