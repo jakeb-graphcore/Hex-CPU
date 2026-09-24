@@ -38,6 +38,7 @@ class CPUModel:
         self.pc = Reg(0)
         self.prev_instr = None
         self.all_instructions = []
+        self.loop = 0; # funcitonally the CPU's clock cycle
 
     def load_instructions(self, code):
         if isinstance(code, str):
@@ -140,6 +141,7 @@ class CPUModel:
             finished = self.oreg == 0xfe
             self.pc += self.oreg
             self.oreg = Reg(0)
+            self.loop += 1
             return finished
         elif (instr == InstrEncoding.BRZ):
             if self.areg == Reg(0):
@@ -160,15 +162,16 @@ class CPUModel:
             self.oreg = Reg(0)
         elif (instr == InstrEncoding.PFIX):
             self.oreg = self.oreg << 4
+
+        self.loop += 1
         return False
 
     def execute_program(self):
         self.reset()
         exit = False
-        MAX_LOOP = 100000000
-        loop = 0
-        while not exit and loop < MAX_LOOP:
+        MAX_LOOP = 100000
+        self.loop = 0
+        while not exit and self.loop < MAX_LOOP:
             exit = self.execute_instruction()
-            loop += 1
-        if loop == MAX_LOOP:
+        if self.loop == MAX_LOOP:
             raise RuntimeError("MAX_LOOP exceeded!! Model failed to finish. Your code should end with instructions 0xff, 0x9e.")

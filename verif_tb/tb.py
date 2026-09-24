@@ -5,7 +5,7 @@ from transactions import MemTransaction
 from drivers import ResetDriver
 from models import CPUModel
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles
+from cocotb.triggers import ClockCycles, Combine, First
 import tb_config
 
 class TB:
@@ -51,10 +51,23 @@ class TB:
         self.end_of_test()
 
 
+    # It seems the max_loop variable is ignroed in funcitonality, and it actually checks against 10,000. THis is hard coded into the program.
     async def run_dynamic(self, _code=(), data_memory=tuple()):
         self.data_mem_transactor.load_memory(data_memory)
         cocotb.start_soon(self.clock.start())
         await self.reset()
-        await cocotb.triggers.First(ClockCycles(self.entity.i_clk, 10000), cocotb.triggers.Combine(self.instruction_mem_transactor.transactor_finished.wait(), self.data_mem_transactor.transactor_finished.wait()))
-        self.end_of_test()
+        
+        # Seperate original code so we can remember if tiemout is triggered.
+        timeout = ClockCycles(self.entity.i_clk, 10000)
+        transactors_finished = Combine(self.instruction_mem_transactor.transactor_finished.wait(), self.data_mem_transactor.transactor_finished.wait())
+
+        triggered = await First(timeout, transactors_finished) 
+
+        if triggered is timeout:
+            self.arch_state_monitor.force_collect_coverage()
+            raise RuntimeError("MAX_LOOP exceeded!! Model failed to finish. Your code should end with instructions 0xff, 0x9e.")
+        else: 
+            print("Finished normally")
+    
+        self.end_of_test()  
 

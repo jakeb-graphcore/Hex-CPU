@@ -259,7 +259,7 @@ always_ff @(posedge i_clk) begin
         state <= RETIRE;
     end
 
-    // resest flags
+    
     RETIRE: begin
         if (instruction != PFIX) begin
             oreg <= 0;

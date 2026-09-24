@@ -20,11 +20,12 @@ async def run_test(dut, test_case=None):
     code = test_generator(operand)
     await tb.run(code)
 
-# Run a test using dynamic memory
-async def run_dynamic_test(dut):
-    seed = 10
+# Run a test using dynamic memory. Pass in seed.
+async def run_dynamic_test(dut, test_case=None):
+    test_generator, seed = test_case
+    _code = test_generator(seed)
     tb = TB(dut, seed)
-    await tb.run_dynamic();
+    await tb.run_dynamic(_code);
 
 
 def log_seeds(root_seed, test_seeds):
@@ -53,7 +54,9 @@ clear_coverage()
 
 
 if tb_config.use_dynamic_instruction_transactor == True:
+    seed = root_rand.randint(0, 0xffff_ffff)
     tf = cocotb.regression.TestFactory(run_dynamic_test)
+    tf.add_option(name="test_case", optionlist=[(testgen.test_dynamically, seed)])
     tf.generate_tests();
 else:
     tf = cocotb.regression.TestFactory(run_test)

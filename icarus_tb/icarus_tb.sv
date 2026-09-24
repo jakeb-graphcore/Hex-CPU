@@ -79,24 +79,32 @@ always@(posedge o_data_rd_en) begin
    $display("Recieved read instruciton. Address: %b", o_data_addr);
 end
 
-// handle instruction memory serve, effectively happens at the start of the clock cycle.
-always@(o_instr_addr) begin
-   if (stop) begin
-      $finish;
-   end
-   i_instr_rd_data = instruction_memory[o_instr_addr];
+logic tests_passed = 1;
 
-   if (o_instr_addr >= final_instruction_address) begin
-      stop = 1;
-   end   
-end
+function byte check_values();
+   // check register values
+   tests_passed = tests_passed & (dut.areg == 15);
+   tests_passed = tests_passed & (dut.breg == 0);
+
+   if (dut.areg == 15) begin
+      $display("Areg correct: %b", dut.areg);
+   end else begin
+      $display("Areg incorrect: %b", dut.areg);
+   end
+
+   if (dut.breg == 0) begin
+      $display("Breg correct: %b", dut.breg);
+   end else begin
+      $display("Breg incorrect: %b", dut.breg);
+   end
+
+   return tests_passed;
+endfunction
+
+
 
 initial begin
    //Fill instruction memory 
-   
-   instruction_memory[0] = FORM_OPCODE_OPERAND(LDAC, 15);
-   instruction_memory[1] = FORM_OPCODE_OPERAND(STAM, 1);
-   final_instruction_address = 1;
 
 
    // Start the clock
@@ -109,12 +117,25 @@ initial begin
    `EXECUTE_INSTR(LDAC, 0);
    `EXECUTE_INSTR(LDAM, 1);
    `EXECUTE_INSTR(LDBC, 0);
+
+   $display("\n");
+   check_values();   
+   $display("\n");
+
+   // shutdown cpu normally.
+   `EXECUTE_INSTR(PFIX, 15);
+   `EXECUTE_INSTR(BR, 14);
+
+   repeat (1) @(posedge i_clk);
    $finish;
 end
+
 
 final begin
    $dumpfile("dump.vcd");
    $dumpvars(0,testbench);
 end
 
+
 endmodule : testbench
+

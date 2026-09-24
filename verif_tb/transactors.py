@@ -76,7 +76,7 @@ class DynamicInstructionMemoryTransactor(InstructionMemoryTransactor):
     def __init__(self, entity, clock, testbench_callback):
         self.cpu_model = models.CPUModel()
         seed = 12
-        self.num_of_instructions_to_serve = 10000000;
+        self.num_of_instructions_to_serve = 100;
         self.rand = Random(seed)
         self.num_of_instructions_served = 0;
         
@@ -88,15 +88,18 @@ class DynamicInstructionMemoryTransactor(InstructionMemoryTransactor):
         # Start with the simplest way, return a random instruction. Could have a dynamic instruction memory for this. 
 
         instruction = self.rand.randint(0, 255);
-        print(f"Insruction: {instruction}")
         self.num_of_instructions_served += 1;
+        print(f"Insruction: {instruction}")
+        print(f"Number of instruction: {self.num_of_instructions_served}")
 
         # send second end of statement
         if self.num_of_instructions_to_serve - self.num_of_instructions_served == 0:
+            print(f"Returning 0xff")
             return 0xff
 
         # send last end of statement 
         if self.num_of_instructions_to_serve - self.num_of_instructions_served == -1:
+            print(f"Returing 0x9e")
             return 0x9e
 
         return instruction
